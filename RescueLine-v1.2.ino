@@ -97,29 +97,37 @@ else if(!faze)
    
 
   
-if(laser("front") > 130){
+if(laser("front") > 100){
     motor("forward",255,255);
    }
-else if (laser("front") < 130){
+else if (laser("front") < 100){
     if (turn == false){
       motor("left",255,255);
       delay(1900);
       motor("forward",255,255);
-      delay(750);
+      int u_laser = laser("front");
+      while(((u_laser-100) - laser("front")) < 0){
+        Serial.println("moradi jan nakhondam");
+        delay(1);
+      }
       motor("left",255,255);
       delay(1900);
-      
-           
-      
+      motor("back",255,255);
+      while(!(digitalRead(tchBlp) && digitalRead(tchBrp))) delay(1); 
     }
     if (turn == true){
       motor("right",255,255);
       delay(1900);
       motor("forward",255,255);
-      delay(750);
+      int u_laser = laser("front");
+      while(((u_laser-100) - laser("front")) < 0){
+        Serial.println("moradi jan nakhondam");
+        delay(1);
+      }
       motor("right",255,255);
       delay(1900);
-      
+      motor("back",255,255);
+      while(!(digitalRead(tchBlp) && digitalRead(tchBrp))) delay(1); 
 
     }
     turn=!turn ;
