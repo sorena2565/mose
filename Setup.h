@@ -7,7 +7,7 @@
     #define servobazobaste 800
     #define servobazobala 1000
     #define makhzanbala 321
-
+// khayash
   //touch sensors
     #define tchFrp 22
     #define tchFlp 23
