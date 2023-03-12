@@ -8,6 +8,31 @@
     #define servobazobala 1000
     #define makhzanbala 321
 // khayash
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ostad milad
   //touch sensors
     #define tchFrp 22
     #define tchFlp 23
