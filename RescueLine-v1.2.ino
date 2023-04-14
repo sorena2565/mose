@@ -10,10 +10,12 @@
   VL53L0X sensor; 
   VL53L0X sensor2;
   VL53L0X sensor3;
+  VL53L0X sensor4;
 
   const int xshutPin = 49;
   const int xshutPin2 = 47;
   const int xshutPin3 = 46;
+  const int xshutPin4 = 45;
 
 #define HIGH_ACCURACY
 
@@ -52,8 +54,12 @@
   #define a22 35
   #define a23 34
   #define a24 15  
-
-
+  //ldr
+  #define ldrrp A6
+  #define ldrlp A5
+  #define tranr 65
+  #define tranl 66
+bool rang = false;//rang chahar rah
   bool aa1=0;
   bool aa2=0;
   bool aa3=0;
@@ -82,8 +88,8 @@
   #define onn 1
   #define offf 0
 
-  #define greenl 100
-  #define greenh 300
+  #define greenr 100
+  #define greenl 300
   #define returntime 1000 //how long does it take to return
   #define turnright 1000
   #define turnleft 1000
@@ -97,28 +103,26 @@
 #define eml 9  //input left motor
 #define emr 2
 
-// ostad milad
+// ostad milad koskhol soltan btc
   //touch sensors
     #define tchFrp 22
     #define tchFlp 23
     #define tchBrp 22
     #define tchBlp 23
+
   //sharp
     #define sharpPin A3
     #define ballrange 100
     #define noballrange 200
 
-  //ldr
-    #define ldrR 68
-    #define ldrL 59
-
   //colors
     #define red1 100
     #define red2 200
-    #define green1 300
-    #define green2 400
+    #define green1 550
+    #define green2 700
     #define nogh1 500
     #define nogh2 600
+
   //servo motors
     #define servo1p 12   //servo paiin giriper rast
     #define servo2p 21   //servo paiin giriper chap
@@ -180,11 +184,15 @@
  void shokhm();
  void Line();
  void ir();
+ void mane();
+ void ldr();
+ void khat();
 
 
 void setup(){
   
 //laser
+/*
   pinMode(xshutPin, OUTPUT);
   digitalWrite(xshutPin, LOW);
 
@@ -198,7 +206,12 @@ void setup(){
   pinMode(xshutPin3, OUTPUT);
   digitalWrite(xshutPin3, LOW);
 
+  delay(10);
 
+  pinMode(xshutPin4, OUTPUT);
+  digitalWrite(xshutPin4, LOW);
+
+  Serial.begin(9600);
   Wire.begin();
 
   digitalWrite(xshutPin, HIGH);
@@ -218,10 +231,10 @@ void setup(){
 
 #if defined HIGH_SPEED
   // reduce timing budget to 20 ms (default is about 33 ms)
-  sensor.setMeasurementTimingBudget(20000);
+  sensor.setMeasurementTimingBudget(2000);
 #elif defined HIGH_ACCURACY
   // increase timing budget to 200 ms
-  sensor.setMeasurementTimingBudget(200000);
+  sensor.setMeasurementTimingBudget(20000);
 #endif
 
   digitalWrite(xshutPin2, HIGH);
@@ -233,10 +246,10 @@ void setup(){
 
 #if defined HIGH_SPEED
   // reduce timing budget to 20 ms (default is about 33 ms)
-  sensor2.setMeasurementTimingBudget(20000);
+  sensor2.setMeasurementTimingBudget(2000);
 #elif defined HIGH_ACCURACY
   // increase timing budget to 200 ms
-  sensor2.setMeasurementTimingBudget(200000);
+  sensor2.setMeasurementTimingBudget(20000);
 #endif
 digitalWrite(xshutPin3, HIGH);
   delay(10);
@@ -247,37 +260,55 @@ digitalWrite(xshutPin3, HIGH);
 
 #if defined HIGH_SPEED
   // reduce timing budget to 20 ms (default is about 33 ms)
-  sensor2.setMeasurementTimingBudget(20000);
+  sensor2.setMeasurementTimingBudget(2000);
 #elif defined HIGH_ACCURACY
   // increase timing budget to 200 ms
-  sensor2.setMeasurementTimingBudget(200000);
+  sensor2.setMeasurementTimingBudget(20000);
 #endif
 
+  digitalWrite(xshutPin4, HIGH);
+  delay(10);
+  sensor4.init();
+  sensor4.setTimeout(200);
+  sensor4.setAddress((uint8_t)51);
+  delay(10);
+
+#if defined HIGH_SPEED
+  // reduce timing budget to 20 ms (default is about 33 ms)
+  sensor4.setMeasurementTimingBudget(2000);
+#elif defined HIGH_ACCURACY
+  // increase timing budget to 200 ms
+  sensor4.setMeasurementTimingBudget(20000);
+#endif
+*/
 //laser...............
-pinMode(a1,INPUT);
-pinMode(a2,INPUT);
-pinMode(a3,INPUT);
-pinMode(a4,INPUT);
-pinMode(a5,INPUT);
-pinMode(a6,INPUT);
-pinMode(a7,INPUT);
-pinMode(a8,INPUT);
-pinMode(a9,INPUT);
-pinMode(a10,INPUT);
-pinMode(a11,INPUT);
-pinMode(a12,INPUT);
-pinMode(a13,INPUT);
-pinMode(a14,INPUT);
-pinMode(a15,INPUT);
-pinMode(a16,INPUT);
-pinMode(a17,INPUT);
-pinMode(a18,INPUT);
-pinMode(a19,INPUT);
-pinMode(a20,INPUT);
-pinMode(a21,INPUT);
-pinMode(a22,INPUT);
-pinMode(a23,INPUT);
-pinMode(a24,INPUT);
+  pinMode(a1,INPUT);
+  pinMode(a2,INPUT);
+  pinMode(a3,INPUT);
+  pinMode(a4,INPUT);
+  pinMode(a5,INPUT);
+  pinMode(a6,INPUT);
+  pinMode(a7,INPUT);
+  pinMode(a8,INPUT);
+  pinMode(a9,INPUT);
+  pinMode(a10,INPUT);
+  pinMode(a11,INPUT);
+  pinMode(a12,INPUT);
+  pinMode(a13,INPUT);
+  pinMode(a14,INPUT);
+  pinMode(a15,INPUT);
+  pinMode(a16,INPUT);
+  pinMode(a17,INPUT);
+  pinMode(a18,INPUT);
+  pinMode(a19,INPUT);
+  pinMode(a20,INPUT);
+  pinMode(a21,INPUT);
+  pinMode(a22,INPUT);
+  pinMode(a23,INPUT);
+  pinMode(a24,INPUT);
+
+  pinMode(ldrrp,INPUT);
+  pinMode(ldrlp,INPUT);
 
   pinMode(imr1, OUTPUT);  //IN2
   pinMode(imr2, OUTPUT);  //IN1
@@ -288,7 +319,6 @@ pinMode(a24,INPUT);
 
   pinMode(4,OUTPUT);
   //on/off LED
-
   Serial.begin(9600);
 
 }
@@ -298,7 +328,11 @@ pinMode(a24,INPUT);
 //|_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|       |-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|
 //==================================================================================-------==========================================================================================
 void loop() {
-shokhm();
+ 
+digitalWrite(65,HIGH);
+digitalWrite(66,HIGH);
+Line();
+
 }
   
 
@@ -308,18 +342,27 @@ shokhm();
 //|..............................................................................|F U N C T I O N S|.................................................................................|
 //|_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|                 |-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|
 //================================================================================-----------------===================================================================================
+int ldr(String m){
+  if (m == "right"){
+    return analogRead(ldrrp);
+  }
+  if (m == "left"){
+    return analogRead(ldrlp);
+  }
+}
 void shokhm(){
    Serial.println(turn);
-
+ 
   if(laser("front") > 100){
       motor("forward",255,255);
       Serial.println(turn);
     }
-  else if (laser("front") < 280){
+  else if (laser("front") < 450){
+    motor("forward",0,0);
       if (turn == false){
         turn_with_laser("left");
         motor("forward",255,255);
-        delay(2000);
+        delay(300);
         /*
         int u_laser = laser("front");
         while(((u_laser-100) - laser("front")) < 0){ 
@@ -327,15 +370,14 @@ void shokhm(){
           delay(1);
         }
         */
+        Serial.println("aafsasjlk");
         turn_with_laser("left");
-        motor("back",255,255);
-        delay(2000);
 
       }
       if (turn == true){
         turn_with_laser("right");
         motor("forward",255,255);
-         delay(2000);
+         delay(300);
         /*
         int u_laser = laser("front");
         while(((u_laser-100) - laser("front")) < 0){ 
@@ -343,9 +385,9 @@ void shokhm(){
           delay(1);
         }
         */
+        Serial.println("aafsasjlk");
         turn_with_laser("right");
-        motor("back",255,255);
-        delay(2000);
+
 
       }
       turn=!turn ;
@@ -354,20 +396,53 @@ void shokhm(){
  
 void Line(){
    ir();
-   if ( (aa6 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn)||(aa6 == onn && aa15 == onn && aa2 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ){
+   
+
+   if ((aa6 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn)||(aa6 == onn && aa15 == onn && aa2 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ){
+    while(rang == true){
     ir();
-    digitalWrite(4,HIGH);
     motor("back",255,255);
-    delay(50);
-    motor("forward",0,0);
-    delay(1000);  
-    Serial.println("moz");
+    delay(60);
+    motor("forward",0,0); 
+    delay(500);
+    rang = false;
+    }
+    while(rang == false){
+      delay(100);
+      Serial.println(ldr("right"));
+      if (700 < ldr("right") && ldr("right") < 800){
+
+        motor("right",low,high);
+        delay(800);
+        rang = true;
+        
+      }
+      
+      else if(600 < ldr("left") && ldr("left") < 700){
+
+        motor("left",low,high);
+        delay(800);
+        rang = true;
+
+      }
+      
+      else{
+        motor("forward",255,255);
+        delay(500);
+        rang = true;
+      }
+      
+    }
+    rang = false;
   } 
-  else if (aa1 == onn ){
+
+  if (aa1 == onn ){
+    rang = true;
     digitalWrite(4,LOW);
     motor("forward",255,255);
-    Serial.println("forward");
+    //Serial.println("forward");
   }
+  
   
 
   /*
@@ -380,12 +455,13 @@ void Line(){
     }
   }
   */
-  else if (aa13 == onn || aa14 == onn || aa15 == onn){
+  else if (aa12 == onn || aa13 == onn || aa14 == onn){
     ir();
     while(!(aa1 == onn)){
       ir();
       motor("right",low,high);
       Serial.println("bish right");
+      khat();
     }
   }
   else if (aa8 == onn || aa7 == onn || aa6 == onn){
@@ -394,8 +470,12 @@ void Line(){
       ir();
       motor("left",high,low);
       Serial.println("bish left");
+      khat();
     }
   }
+
+
+/*
   else if (aa11 == onn){
     ir();
     while(!(aa1 == onn)){
@@ -404,6 +484,7 @@ void Line(){
       Serial.println("enheraf right");
     }
   }
+  
   else if (aa9 == onn){
     ir();
     while(!(aa1 == onn)){
@@ -412,16 +493,35 @@ void Line(){
       Serial.println("enheraf left");
       }
     }
+  */
   }
-
+void khat(){
+    ir();
+    if (aa16 == onn && aa2 == offf && aa24 == offf){
+    ir();
+    while(!(aa1 == onn)){
+      ir();
+      motor("right",255,255);
+      Serial.println("enheraf right");
+    }
+  }
+  
+  else if (aa4 == onn && aa2 == offf && aa24 == offf){
+    ir();
+    while(!(aa1 == onn)){
+      ir();
+      motor("left",255,255);
+      Serial.println("enheraf left");
+      }
+    }
+}
 int laser(String m){
-  delay(20);
   if (m == "back"){
-    distanceb =sensor.readRangeSingleMillimeters();
+    distanceb = sensor4.readRangeSingleMillimeters();
     return distanceb;
   }
   if (m == "front"){
-    distancej =sensor3.readRangeSingleMillimeters();
+    distancej = sensor3.readRangeSingleMillimeters();
     return distancej;
   }
   if (m == "right"){
@@ -437,83 +537,99 @@ int laser(String m){
 
 void turn_with_laser(String mode){
 
-  laser("front");
-  if (distancej < 130){
 
-    if (mode == "right"){
-      
-      laser("left");
-      if (distancel > 120){
-        while (distancel > 120){
-          Serial.println(distancel);
-          motor("right",200,200);
-          laser("left");
-          }
+  if (mode == "right"){
+    
+    laser("left");
+    if (distancel > 90){
+      while (distancel > 90){
+        Serial.println(distancel);
+        motor("right",255,255);
+        laser("left");
         }
-      else{
-        while (distanceb > 100){
-          Serial.println(distanceb);
-          motor("right",200,200);
-          laser("back");
-          }
-        }  
+      }
+    else{
+      laser("back");
+      while (distanceb > 45){
+        Serial.println(distanceb);
+        motor("right",255,255);
+        laser("back");
+        }
       }  
-    if (mode == "left"){
-      laser("right");
-      if (distancer > 120){
-        while (distancer > 120){
-          Serial.println(distancer);
-          motor("left",200,200);
-          laser("right");
-          }
+    }  
+  if (mode == "left"){
+    laser("right");
+    if (distancer > 90){
+      while (distancer > 90){
+        Serial.println(distancer);
+        motor("left",255,255);
+        laser("right");
         }
-      else{
-        while (distanceb > 100){
-          Serial.println(distanceb);
-          motor("left",200,200);
-          laser("back");
-        }
+      }
+    else{
+      laser("back");
+      while (distanceb > 45){
+        Serial.println(distanceb);
+        motor("left",255,255);
+        laser("back");
       }
     }
   }
 }    
 void mane(){
-  laser("right");
-  laser("left");
-  if(distancer > distancel){
-    turn_with_laser("right");
-    ir();
-    while(!(aa10 == onn)){
-      ir();
-      while(distancel < 120){
-        laser("left");
-        motor("forward",255,55);
-        delay(10);
-      }
-      while(distancel > 120){
-        motor("left",200,200);
-        laser("left");
-        delay(10);
-      }
-    }  
+
+/*
+  while(laser("front") >= 100){
+    
+      motor("forward",255,255);
+      Serial.println(distancej);
   }
+    motor("forward",0,0);
+    */
+  
+
+ 
+  // if(distancer > distancel){
+    turn_with_laser("right");
+
+
+
+    while(1){
+      Serial.println("moz");
+      while(laser("left") < 600){
+        motor("forward",200,200);
+        delay(1);
+        }
+      while(laser("left") > 160){
+        motor("left",255,255);
+        delay(1);
+        }
+      delay(1);  
+    }  
+
+  //}
+  /*
   else{
     turn_with_laser("left");
     ir();
-    while(!(aa10 == onn)){
+    while(1){
+      laser("right");
       ir();
       while(distancer < 120){
         laser("right");
-        motor("forward",255,55);
+        motor("forward",255,255);
         delay(10);
       }
+      laser("right");
       while(distancer > 120){
-        motor("right",200,200);
+        motor("forward",200,255);
         laser("right");
         delay(10);
       }
     } 
   }
+  */
+  
 }
 int motor(String mode, int speadr, int speadl) {
   if (mode == "forward") {
@@ -523,7 +639,6 @@ int motor(String mode, int speadr, int speadl) {
     digitalWrite(iml1, LOW);
     digitalWrite(iml2, HIGH);
     analogWrite(eml, speadl);
-    Serial.println("forward");
   }
   if (mode == "back") {
     digitalWrite(imr1, HIGH);
