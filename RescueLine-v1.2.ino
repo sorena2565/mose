@@ -4,18 +4,20 @@
 //|......................................................................|D E F I N E S  A N D  V A R I A B L E S|...................................................................|
 //|_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_--__-_-_-|                                       |-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|
 //========================================================================---------------------------------------====================================================================
+
 #include <Wire.h>
 #include <VL53L0X.h>
+#include <EEPROM.h>
 //laser
   VL53L0X sensor; 
   VL53L0X sensor2;
   VL53L0X sensor3;
   VL53L0X sensor4;
 
-  const int xshutPin = 49;
-  const int xshutPin2 = 47;
-  const int xshutPin3 = 46;
-  const int xshutPin4 = 45;
+  const int xshutPin = 44;
+  const int xshutPin2 = 46;
+  const int xshutPin3 = 47;
+  const int xshutPin4 = 49;
 
 #define HIGH_ACCURACY
 
@@ -24,9 +26,7 @@
     #define servobazobala 1000
     #define makhzanbala 321
   
-//touch sensors
-  #define tchfl 22
-  #define tchfr 23
+
   int R_Speed=20;
   int robotv = 1 ; //switch 
     //IR sensors
@@ -59,7 +59,12 @@
   #define ldrlp A5
   #define tranr 65
   #define tranl 66
-bool rang = false;//rang chahar rah
+  //colores update status
+  bool green = false;
+  bool red = false;
+  bool nogh = false;
+  
+  bool rang = false;//rang chahar rah
   bool aa1=0;
   bool aa2=0;
   bool aa3=0;
@@ -96,6 +101,7 @@ bool rang = false;//rang chahar rah
 
 
 
+
 #define imr1 6 //input right motor
 #define imr2 3 //enable right motor
 #define iml1 7  //input left motor
@@ -105,10 +111,10 @@ bool rang = false;//rang chahar rah
 
 // ostad milad koskhol soltan btc
   //touch sensors
-    #define tchFrp 22
-    #define tchFlp 23
-    #define tchBrp 22
-    #define tchBlp 23
+    #define tchfrp 61
+    #define tchflp 62
+    #define tchbrp 63
+    #define tchblp 64
 
   //sharp
     #define sharpPin A3
@@ -116,12 +122,20 @@ bool rang = false;//rang chahar rah
     #define noballrange 200
 
   //colors
-    #define red1 100
-    #define red2 200
-    #define green1 550
-    #define green2 700
-    #define nogh1 500
-    #define nogh2 600
+    #define redr1 100
+    #define redr2 200
+    #define redl1 100
+    #define redl2 200
+
+    #define greenr1 550
+    #define greenr2 700
+    #define greenl1 550
+    #define greenl2 700
+
+    #define noghr1 500
+    #define noghr2 600
+    #define noghl1 500
+    #define noghl2 600
 
   //servo motors
     #define servo1p 12   //servo paiin giriper rast
@@ -163,9 +177,11 @@ bool rang = false;//rang chahar rah
 
   bool turn = true;
 
-  int high = 255;
-  int low = 247;  
-
+  // int high = 255; 
+  // int low = 247;  
+  int high = 220;
+  int low = 210;
+  int forward = 200;
  //11  12  1  7  9  19  18 
  int motor(String mode, int speadr, int speadl) ;
  int getBearing();
@@ -175,7 +191,6 @@ bool rang = false;//rang chahar rah
  int16_t getAcceleroY();
  int16_t getAcceleroZ();
  int cmps_cal(int a  , String j );
- void tch();
  int cmps();
  int calculateDistance();
  int laser(String m);
@@ -184,16 +199,37 @@ bool rang = false;//rang chahar rah
  void shokhm();
  void Line();
  void ir();
+ int sharp();
  void mane();
- void ldr();
+ int ldr(String m);
  void khat();
+ int tch(String m);
 
 
 void setup(){
-  
+//color setup  
+  digitalWrite(tranr,HIGH);  
+  digitalWrite(tranl,HIGH); 
+  tch("br");
+  if (tch("br") == 1){
+    digitalWrite(4,HIGH);
+    delay(1000);
+    digitalWrite(4,LOW);
+
+    while(green == false){
+      if(tch("br") == 1){
+        EEPROM.write(1, (analogRead(ldr("right"))/4));
+      }
+      if(tch("bl") == 1){
+        EEPROM.write(2, (analogRead(ldr("left"))/4));
+        green = true;
+        }
+      }  
+    }
+
 //laser
-/*
-  pinMode(xshutPin, OUTPUT);
+
+pinMode(xshutPin, OUTPUT);
   digitalWrite(xshutPin, LOW);
 
   delay(10);
@@ -206,12 +242,7 @@ void setup(){
   pinMode(xshutPin3, OUTPUT);
   digitalWrite(xshutPin3, LOW);
 
-  delay(10);
-
-  pinMode(xshutPin4, OUTPUT);
-  digitalWrite(xshutPin4, LOW);
-
-  Serial.begin(9600);
+  Serial.begin(115200);
   Wire.begin();
 
   digitalWrite(xshutPin, HIGH);
@@ -266,21 +297,6 @@ digitalWrite(xshutPin3, HIGH);
   sensor2.setMeasurementTimingBudget(20000);
 #endif
 
-  digitalWrite(xshutPin4, HIGH);
-  delay(10);
-  sensor4.init();
-  sensor4.setTimeout(200);
-  sensor4.setAddress((uint8_t)51);
-  delay(10);
-
-#if defined HIGH_SPEED
-  // reduce timing budget to 20 ms (default is about 33 ms)
-  sensor4.setMeasurementTimingBudget(2000);
-#elif defined HIGH_ACCURACY
-  // increase timing budget to 200 ms
-  sensor4.setMeasurementTimingBudget(20000);
-#endif
-*/
 //laser...............
   pinMode(a1,INPUT);
   pinMode(a2,INPUT);
@@ -328,11 +344,8 @@ digitalWrite(xshutPin3, HIGH);
 //|_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|       |-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|
 //==================================================================================-------==========================================================================================
 void loop() {
- 
-digitalWrite(65,HIGH);
-digitalWrite(66,HIGH);
-Line();
 
+Line();
 }
   
 
@@ -342,26 +355,19 @@ Line();
 //|..............................................................................|F U N C T I O N S|.................................................................................|
 //|_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|                 |-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|
 //================================================================================-----------------===================================================================================
-int ldr(String m){
-  if (m == "right"){
-    return analogRead(ldrrp);
-  }
-  if (m == "left"){
-    return analogRead(ldrlp);
-  }
-}
+
 void shokhm(){
    Serial.println(turn);
  
   if(laser("front") > 100){
-      motor("forward",255,255);
+      motor("forward",forward,forward);
       Serial.println(turn);
     }
   else if (laser("front") < 450){
     motor("forward",0,0);
       if (turn == false){
         turn_with_laser("left");
-        motor("forward",255,255);
+        motor("forward",forward,forward);
         delay(300);
         /*
         int u_laser = laser("front");
@@ -376,7 +382,7 @@ void shokhm(){
       }
       if (turn == true){
         turn_with_laser("right");
-        motor("forward",255,255);
+        motor("forward",forward,forward);
          delay(300);
         /*
         int u_laser = laser("front");
@@ -398,10 +404,10 @@ void Line(){
    ir();
    
 
-   if ((aa6 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn)||(aa6 == onn && aa15 == onn && aa2 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ){
+  if ((aa6 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn)||(aa6 == onn && aa15 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ||(aa5 == onn && aa15 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ){
     while(rang == true){
     ir();
-    motor("back",255,255);
+    motor("back",forward,forward);
     delay(60);
     motor("forward",0,0); 
     delay(500);
@@ -415,7 +421,7 @@ void Line(){
         motor("right",low,high);
         delay(800);
         rang = true;
-        
+
       }
       
       else if(600 < ldr("left") && ldr("left") < 700){
@@ -427,7 +433,7 @@ void Line(){
       }
       
       else{
-        motor("forward",255,255);
+        motor("forward",forward,forward);
         delay(500);
         rang = true;
       }
@@ -435,13 +441,29 @@ void Line(){
     }
     rang = false;
   } 
+  /*
+  if (aa6 == onn && aa1 == onn && aa2 == onn && aa14 == offf){
+    ir();
+    while(!(aa1 == onn)){
+      ir();
+      motor("right",low,high);
+      Serial.println("3 rah right");
+      khat();
+    }
+  }  
 
-  if (aa1 == onn ){
-    rang = true;
-    digitalWrite(4,LOW);
-    motor("forward",255,255);
-    //Serial.println("forward");
+  if (aa14 == onn && aa1 == onn && aa2 == onn && aa6 == offf){  
+    ir();
+    while(!(aa1 == onn)){
+      ir();
+      motor("left",high,low);
+      Serial.println("3 rah left");
+      khat();
+    }
+
   }
+*/
+  
   
   
 
@@ -474,30 +496,40 @@ void Line(){
     }
   }
 
-
 /*
-  else if (aa11 == onn){
+
+  else if (aa11 == onn && aa13 == offf){
     ir();
     while(!(aa1 == onn)){
       ir();
-      motor("right",255,255);
+      motor("right",50,255);
       Serial.println("enheraf right");
+      khat();
     }
   }
   
-  else if (aa9 == onn){
+  else if (aa9 == onn && aa7 == offf){
     ir();
     while(!(aa1 == onn)){
       ir();
-      motor("left",255,255);
+      motor("left",255,50);
       Serial.println("enheraf left");
+      khat();
       }
     }
-  */
+    */
+  else if (aa1 == onn ){
+    rang = true;
+    digitalWrite(4,LOW);
+    motor("forward",forward,forward);
+    
+    //Serial.println("forward");
+    
+  }
   }
 void khat(){
     ir();
-    if (aa16 == onn && aa2 == offf && aa24 == offf){
+    if (aa14 == onn && aa2 == offf && aa24 == offf){
     ir();
     while(!(aa1 == onn)){
       ir();
@@ -506,7 +538,7 @@ void khat(){
     }
   }
   
-  else if (aa4 == onn && aa2 == offf && aa24 == offf){
+  else if (aa6 == onn && aa2 == offf && aa24 == offf){
     ir();
     while(!(aa1 == onn)){
       ir();
@@ -534,7 +566,28 @@ int laser(String m){
   }
   
   }
-
+int ldr(String m){
+  if(m == "right"){
+    return analogRead(ldrrp);
+  }
+  if(m == "left"){
+    return analogRead(ldrlp);
+  }
+}  
+int tch(String m){
+  if(m == "br"){
+    return analogRead(tchbrp);
+  }
+  if(m == "bl"){
+    return analogRead(tchblp);
+  }
+  if(m == "fr"){
+    return analogRead(tchfrp);
+  }
+  if(m == "fl"){
+    return analogRead(tchflp);
+  }
+}
 void turn_with_laser(String mode){
 
 
@@ -578,57 +631,71 @@ void turn_with_laser(String mode){
 }    
 void mane(){
 
-/*
-  while(laser("front") >= 100){
+
+  while(laser("front") > 150){
     
       motor("forward",255,255);
       Serial.println(distancej);
   }
     motor("forward",0,0);
-    */
+    
   
 
  
-  // if(distancer > distancel){
+  if(laser("right") > laser("left")){
     turn_with_laser("right");
 
 
-
-    while(1){
-      Serial.println("moz");
-      while(laser("left") < 600){
-        motor("forward",200,200);
-        delay(1);
-        }
-      while(laser("left") > 160){
-        motor("left",255,255);
-        delay(1);
-        }
-      delay(1);  
-    }  
-
-  //}
-  /*
-  else{
-    turn_with_laser("left");
+    motor("forward",255,255);
+    delay(700);
+    motor("left",255,255);
+    delay(1200);
+    while(laser("left") > 160){
+      motor("forward",255,255);
+      delay(3);
+      }
+    delay(700); 
     ir();
-    while(1){
-      laser("right");
+    while(!(aa10 == onn)){ 
       ir();
-      while(distancer < 120){
-        laser("right");
-        motor("forward",255,255);
-        delay(10);
-      }
-      laser("right");
-      while(distancer > 120){
-        motor("forward",200,255);
-        laser("right");
-        delay(10);
-      }
-    } 
+    while(laser("left") > 160){
+      motor("left",255,255);
+      delay(300);
+      }  
+      motor("forward",255,255);
+      
+      delay(1);  
+    }
+
   }
-  */
+
+  if(laser("left") > laser("right")){
+    turn_with_laser("left");
+
+
+    motor("forward",255,255);
+    delay(700);
+    motor("right",255,255);
+    delay(1200);
+    while(laser("right") > 160){
+      motor("forward",255,255);
+      delay(3);
+      }
+    delay(700); 
+    ir();
+    while(!(aa10 == onn)){ 
+      ir();
+    while(laser("right") > 160){
+      motor("right",255,255);
+      delay(300);
+      }  
+      motor("forward",255,255);
+      
+      delay(1);  
+    }
+
+  }
+  
   
 }
 int motor(String mode, int speadr, int speadl) {
