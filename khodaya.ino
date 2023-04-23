@@ -11,8 +11,10 @@ int sharp_val;
 #include <EEPROM.h>
 #include <Wire.h>
 #include <Servo.h>
+#include <PixyI2C.h>
 //dynamixel
 #include <SoftwareSerial.h>
+PixyI2C pixy;
 //servo
   Servo servogr; 
   Servo servogl;
@@ -69,7 +71,7 @@ int sharp_val;
     #define TWO_BYTES 2
 
     //---------------------------------
-
+    int balll = 0;
     int _bearing;
     int nReceived;
     byte _fine;
@@ -114,6 +116,8 @@ int sharp_val;
     #define ldrlp A5
     #define tranr 65
     #define tranl 66
+
+
   //colores update status
     bool green = false;
     bool red = false;
@@ -162,6 +166,9 @@ int sharp_val;
     #define tchflp 62
     #define tchbrp 63
     #define tchblp 64
+
+    #define ballon 11
+    #define ballread 10
 
   //sharp
     #define sharppin A4
@@ -226,7 +233,7 @@ int sharp_val;
   // int high = 255; 
   // int low = 247;  
   int high = 255;
-  int low = 240;
+  int low = 235;
   int forward = 220;
  //11  12  1  7  9  19  18 
  int motor(String mode, int speadr, int speadl) ;
@@ -256,11 +263,17 @@ int sharp_val;
  void servo(String m);
  void ball();
  void irtest();
+ int pixyy();
+ int rangg(String m);
+ int pixyyy();
+ int ballll();
+ void ballkind();
 
 
 void setup(){
-  // servo("mrd");
-  // servo("mld");
+  servo("mrd");
+  servo("mld");
+  servo("baz");
   pinMode(sharppin,INPUT);
   //servo //13 12 11 10
     servogr.attach(12);//baz 0 baste
@@ -268,9 +281,8 @@ void setup(){
 
     servomr.attach(11);//bala 115 paiin 175
     servoml.attach(13);//bala 80 paiin 0
-  //   servo("baz");
-  //  servo("mrd");
-  //  servo("mld");
+    
+
   //cmps11
    Wire.begin();
   //color setup  
@@ -294,7 +306,7 @@ void setup(){
       }
 
 //laser
-/*
+
 
 pinMode(xshutPin, OUTPUT);
   digitalWrite(xshutPin, LOW);
@@ -362,7 +374,7 @@ digitalWrite(xshutPin3, HIGH);
   // increase timing budget to 200 ms
   sensor2.setMeasurementTimingBudget(20000);
 #endif
-*/
+
 //laser...............
   pinMode(a1,INPUT);
   pinMode(a2,INPUT);
@@ -403,15 +415,16 @@ digitalWrite(xshutPin3, HIGH);
   //on/off LED
   Serial1.begin(9600);
   Serial.begin(9600);
-
-
+  //pixy
+  pixy.init();
+dyna("down");
 
 }
 
 
 void loop() {
 
-Line();
+pixyy();
 
 }
 //================================================================================-----------------===================================================================================
@@ -421,9 +434,13 @@ Line();
 //================================================================================-----------------===================================================================================
 void bardasht(String m){
   if(m == "right"){
-  servo("baste");
+
   delay(1000);
   dyna("up");
+  delay(1000);
+  if(sharp() < 500 && sharp() > 200){
+    balll++;
+  }
   servo("gr");
   delay(1000);
   dyna("down");
@@ -431,9 +448,12 @@ void bardasht(String m){
   delay(1000);
   }
   if(m == "left"){
-  servo("baste");
+
   delay(1000);
   dyna("up");
+  if(sharp() < 500 && sharp() > 200){
+    balll++;
+  }
   delay(1000);
   servo("gl");
   delay(1000);
@@ -443,17 +463,36 @@ void bardasht(String m){
   }
 }
 void shokhm(){
+  if(laser("front") > 200){
+    ball();
+    motor("forward",forward,forward);
+    }
+    
   Serial.println(sharp());
   ball();
+  if(balll > 2){
+    rang = false;
+    while(rang == false){
+    rangg("green");
+    if(tch("fr") == 1){
+      digitalWrite(4,HIGH);
+      servo("mlu");
+      delay(1000);
+    }  
+    rangg("red");
+    if(tch("fr") == 1){
+      digitalWrite(4,HIGH);
+      servo("mru");
+      delay(1000);
+      rang = true;
+      }
+    }
+  }
   if((ldr("right") < 500) || (ldr("left") < 450)){
     motor("left",255,255);
     delay(1000);
   }
-  if(laser("front") > 200){
-    Serial.println(sharp());
-    ball();
-      motor("forward",forward,forward);
-    }
+  
   else if (laser("front") < 200){
     ball();
     Serial.println(sharp());
@@ -491,7 +530,40 @@ void shokhm(){
       ball();
     }
     ball();
+  } 
+int rangg(String m){//.................................................
+  if (m == "green"){
+    while(!(tch("fr") == 1)){
+    if(!(pixyy() == "green")){
+      motor("right",60,60);
+    }
+    if(pixyy() == "green"){
+    motor("forward",222,222);  
+    }      
+   }
+  }
+  if (m == "red"){
+    while(!(tch("fr") == 1)){
+    if(!(pixyy() == "red")){
+      motor("right",60,60);
+    }
+    if(pixyy() == "red"){
+    motor("forward",222,222);  
+    }      
+   }
   }   
+  if(m == "line"){
+    Serial.println(pixyyy());
+    if(pixyyy() < 170 ){
+
+      return "right";
+    }  
+    if(pixyyy() > 170 ){
+      return "left";
+    } 
+  }
+ 
+}    
  void dyna(String m){
   if(m == "up"){
 
@@ -506,19 +578,16 @@ void shokhm(){
 
   }
   if(m == "midle"){
-    ax12_write2(2,300,30);
+    ax12_write2(2,515,30);
  
   }
 }
 void Line(){
-   ir();
-   digitalWrite(4,LOW);
-
-  if((aa6 == onn && aa15 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ||(aa5 == onn && aa15 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ){
+    if((aa1 == onn && aa3 == onn && aa9 == onn && aa11 == onn && aa12 == onn)|| (aa1 == onn && aa17 == onn && aa9 == onn && aa11 == onn && aa8 == onn)||(aa6 == onn && aa15 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ||(aa5 == onn && aa15 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ){
     while(rang == true){
     ir();
     motor("back",forward,forward);
-    delay(60);
+    delay(70);
     motor("forward",0,0); 
     delay(500);
     rang = false;
@@ -528,16 +597,16 @@ void Line(){
       Serial.println(ldr("right"));
       if (700 < ldr("right") && ldr("right") < 800){
 
-        motor("right",low,high);
-        delay(800);
+        motor("right",200,250);
+        delay(1000);
         rang = true;
 
       }
       
       else if(600 < ldr("left") && ldr("left") < 700){
 
-        motor("left",low,high);
-        delay(800);
+        motor("left",250,200);
+        delay(1000);
         rang = true;
 
       }
@@ -551,110 +620,36 @@ void Line(){
     }
     rang = false;
   } 
-  /*
-  if (aa6 == onn && aa1 == onn && aa2 == onn && aa14 == offf){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("right",low,high);
-      Serial.println("3 rah right");
-      khat();
-    }
-  }  
+   ir();
+   digitalWrite(4,LOW);
 
-  if (aa14 == onn && aa1 == onn && aa2 == onn && aa6 == offf){  
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("left",high,low);
-      Serial.println("3 rah left");
-      khat();
-    }
-
-  }
-*/
-  else if (aa1 == onn){
-    
+ 
+  if (aa1 == onn){
+      rang = true;
       motor("forward",forward,forward);
       Serial.println("forward");
-
-    }
-  
-  
-  
-
-  /*
-  else if ( aa10 == onn && aa6 == onn ){
-    ir();
-    digitalWrite(4,HIGH);
-    while(!(aa1 == onn)){
-      ir();
-      motor("left",250,240);
-    }
-  }
-  */
-  
-  else if (aa18 == onn && aa1 == onn){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("left",high,low);
-      Serial.println("l bala left");
-      
-    }
-  }
-  else if (aa23 == onn && aa1 == onn){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("right",low,high);
-      Serial.println("l bala right");
-      
-    }
-  }
-  else if (aa12 == onn || aa13 == onn || aa14 == onn){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("right",low,high);
-      Serial.println("bish right");
-      khat();
-    }
-  }
-  else if (aa8 == onn || aa7 == onn || aa6 == onn){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("left",high,low);
-      Serial.println("bish left");
-      khat();
-    }
-  }
-  
-
-/*
-
-  else if (aa11 == onn && aa13 == offf){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("right",50,255);
-      Serial.println("enheraf right");
-      khat();
-    }
-  }
-  
-  else if (aa9 == onn && aa7 == offf){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("left",255,50);
-      Serial.println("enheraf left");
-      khat();
+      if(aa9 == onn){
+        motor("left",high,low);
       }
+      if(aa11 == onn){
+        motor("right",low,high);
+      }
+
     }
-    */
+
+  else if (aa12 == onn || aa16 == onn || aa21 == onn){
+    motor("right",low,high);
+    Serial.println("bish right");
+    
+  }
+  else if (aa8 == onn || aa4 == onn || aa20 == onn){
+    motor("left",high,low);
+    Serial.println("bish left");
+    
+  }
   
+
+
   }
 void khat(){
     ir();
@@ -954,6 +949,18 @@ aa22=digitalRead(a22);
 aa23=digitalRead(a23);
 aa24=digitalRead(a24);
 }    
+int ballkind(){
+  digitalWrite(ballon,HIGH);
+  return digitalRead(ballread);
+}
+void ballll(){
+  if(ballkind() == 1){
+    return "zende";
+  }
+  else{
+    return "morde";
+  }
+}
 //dynamixel
 void ax12_write2(int id, int data,char ad_reg)
 {
@@ -1186,9 +1193,13 @@ void ball(){
     digitalWrite(iml1, LOW);
     digitalWrite(iml2, LOW);
     analogWrite(eml, 200);
-
-    bardasht("right");
-
+    servo("baste");
+    if(ballll() == "zende"){
+      bardasht("left");
+    }
+    else{
+      bardasht("right");
+    }
   }
 }
 void irtest(){
@@ -1218,6 +1229,79 @@ Serial.print(aa22);
 Serial.print(aa23);
 Serial.println(aa24);
 }
+int pixyy(){
+  static int i = 0;
+  int j;
+  uint16_t blocks;
+  char buf[32]; 
+  
+  blocks = pixy.getBlocks();
+  
+if (blocks)
+  {
+    i++;
+    
+    // do this (print) every 50 frames because printing every
+    // frame would bog down the Arduino
+    if (i%50==0)
+    {
+
+      for (j=0; j<blocks; j++)
+      {
+        Serial.println(pixy.blocks[j].signature);
+
+        if (pixy.blocks[j].signature == 1){
+          Serial.println("red");
+          return "red";
+        }
+        if (pixy.blocks[j].signature == 2){
+          Serial.println("green");
+          return "green";
+        }
+        if (pixy.blocks[j].signature == 3){
+          Serial.println("blue");
+          return "blue";
+        }
+      }
+    }
+  }  
+}  
+int pixyyy(){
+  static int i = 0;
+  int j;
+  uint16_t blocks;
+  char buf[32]; 
+  
+  blocks = pixy.getBlocks();
+  
+if (blocks)
+  {
+    i++;
+    
+    // do this (print) every 50 frames because printing every
+    // frame would bog down the Arduino
+    if (i%50==0)
+    {
+
+      for (j=0; j<blocks; j++)
+      {
+
+        if (pixy.blocks[j].signature == 1){
+          Serial.println("red");
+          return pixy.blocks[j].x;
+        }
+        if (pixy.blocks[j].signature == 2){
+          Serial.println("green");
+          return pixy.blocks[j].x;
+        }
+        if (pixy.blocks[j].signature == 3){
+          Serial.println("blue");
+          return pixy.blocks[j].x;
+        }
+      }
+    }
+  }  
+}  
 int sharp(){
   distancej = analogRead(sharppin);
   return distancej;
