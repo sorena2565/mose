@@ -182,10 +182,10 @@ PixyI2C pixy;
     #define redl1 100
     #define redl2 200
 
-    #define greenr1 700
-    #define greenr2 760
-    #define greenl1 670
-    #define greenl2 730
+    #define greenr1 550
+    #define greenr2 610
+    #define greenl1 480
+    #define greenl2 540
 
     #define noghr1 500
     #define noghr2 600
@@ -281,13 +281,14 @@ void setup(){
   */
   pinMode(sharppin,INPUT);
   //servo //13 12 11 10
+  /*
     servogr.attach(11);//baz 0 baste
     servogl.attach(10);//baz180
 
     servomr.attach(12);//bala 5 paiin 90
     servoml.attach(13);//bala 80 paiin 0
     
-
+*/
   //cmps11
    Wire.begin();
   //color setup  
@@ -430,6 +431,7 @@ dyna("up");
 void loop() {
 
 Line();
+
 }
 //================================================================================-----------------===================================================================================
 //|_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|                 |-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|
@@ -557,28 +559,47 @@ void setcolor(String m){
     redl1 == ldr("left") - 30;
     redl2 == ldr("left") + 30;
   }
-
 }  
 int rangg(String m){//.................................................
   if (m == "green"){
-    while(!(tch("fr") == 1)){
-    if(!(pixyy() == "green")){
-      motor("right",60,60);
+    while(!(tch("fr") && tch("fl") == 1)){
+
+      if(!(pixyy() == "green")){
+        
+        if (rangg("line") == "right"){
+
+          motor("right",60,60);
+        }
+        else if (rangg("line") == "left"){
+
+          motor("left",60,60);
+        }
+      }
+      if(pixyy() == "green"){
+
+        motor("forward",222,222);  
+        }      
+      }
     }
-    if(pixyy() == "green"){
-    motor("forward",222,222);  
-    }      
-   }
-  }
   if (m == "red"){
-    while(!(tch("fr") == 1)){
-    if(!(pixyy() == "red")){
-      motor("right",60,60);
+    while(!(tch("fr") && tch("fl") == 1)){
+
+      if(!(pixyy() == "red")){
+
+        if (rangg("line") == "right"){
+
+          motor("right",60,60);
+        }
+        else if (rangg("line") == "left"){
+
+          motor("left",60,60);
+        }
+      }
+      if(pixyy() == "red"){
+
+      motor("forward",222,222);  
+      }      
     }
-    if(pixyy() == "red"){
-    motor("forward",222,222);  
-    }      
-   }
   }   
   if(m == "line"){
     Serial.println(pixyyy());
@@ -587,10 +608,11 @@ int rangg(String m){//.................................................
       return "right";
     }  
     if(pixyyy() > 170 ){
+
       return "left";
+
     } 
   }
- 
 }    
  void dyna(String m){
   if(m == "up"){
@@ -611,51 +633,55 @@ int rangg(String m){//.................................................
   }
 }
 void Line(){
+    /*
+  if(((aa7 == onn || aa8 == onn || aa9 == onn ) && (aa11 == onn || aa12 == onn || aa13 == onn ) && (aa2 == onn || aa24 == onn))||(aa1 == onn && aa3 == onn && aa9 == onn && aa11 == onn && aa12 == onn)|| (aa1 == onn && aa17 == onn && aa9 == onn && aa11 == onn && aa8 == onn)||(aa6 == onn && aa15 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ||(aa5 == onn && aa15 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ){
     
-    if(((aa7 == onn || aa8 == onn || aa9 == onn ) && (aa11 == onn || aa12 == onn || aa13 == onn ) && (aa2 == onn || aa24 == onn))||(aa1 == onn && aa3 == onn && aa9 == onn && aa11 == onn && aa12 == onn)|| (aa1 == onn && aa17 == onn && aa9 == onn && aa11 == onn && aa8 == onn)||(aa6 == onn && aa15 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ||(aa5 == onn && aa15 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ){
     while(rang == true){
-    ir();
-    motor("back",forward,forward);
-    delay(70);
-    motor("forward",0,0); 
-    delay(500);
-    rang = false;
+      ir();
+      motor("back",forward,forward);
+      delay(70);
+      motor("forward",0,0); 
+      delay(500);
+      rang = false;
     }
+    
     while(rang == false){
       delay(100);
       Serial.println(ldr("right"));
-      if (greenr1 < ldr("right") && ldr("right") < greenr2){
 
+      if (greenr1 < ldr("right") && ldr("right") < greenr2){
         motor("right",200,250);
         delay(1000);
         rang = true;
-
       }
       
       else if(greenl1 < ldr("left") && ldr("left") < greenl2){
-
         motor("left",250,200);
         delay(1000);
         rang = true;
-
       }
       
       else{
         motor("forward",forward,forward);
-        delay(500);
+        delay(300);
         rang = true;
       }
-      
     }
     rang = false;
   } 
-  
+  */
    ir();
    digitalWrite(4,LOW);
 
   if(((ldr("right") < 530) && (ldr("right") > 430)) || ((ldr("left") < 480) && (ldr("left") > 380))){
-
-    faze = true;
+    delay(100);
+    if(aa1 == onn || aa18 == onn || aa23 == onn){
+      faze = false;
+    }
+    else{
+      faze = true;
+    }
+    
   }
   if (aa1 == onn){
       rang = true;
