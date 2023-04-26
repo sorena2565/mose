@@ -4,6 +4,9 @@
 //|......................................................................|D E F I N E S  A N D  V A R I A B L E S|...................................................................|
 //|_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_--__-_-_-|                                       |-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|
 //========================================================================---------------------------------------====================================================================
+String color = "";
+int fr = 0;
+int fl = 0;
 
 int sharp_pin = A4; // analog input pin for Sharp sensor
 int sharp_val;
@@ -163,8 +166,8 @@ PixyI2C pixy;
   #define emr 2
 
   //touch sensors
-    #define tchfrp 61
-    #define tchflp 62
+    #define tchfrp 64
+    #define tchflp 61
     #define tchbrp 63
     #define tchblp 64
 
@@ -177,15 +180,15 @@ PixyI2C pixy;
     #define noballrange 200
 
   //colors
-    #define redr1 100
-    #define redr2 200
+    #define redr1 700
+    #define redr2 770
     #define redl1 100
     #define redl2 200
 
     #define greenr1 630
     #define greenr2 730
-    #define greenl1 650
-    #define greenl2 720//579
+    #define greenl1 600
+    #define greenl2 700//579
 
     #define noghr1 500
     #define noghr2 600
@@ -428,14 +431,13 @@ digitalWrite(xshutPin3, HIGH);
   //pixy
   pixy.init();
 
-dyna("down");
+
 }
 
 
 void loop() {
 
-rangg("green");
-
+Line();
 }
 //================================================================================-----------------===================================================================================
 //|_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|                 |-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-|
@@ -473,24 +475,66 @@ void bardasht(String m){
   }
 }
 void shokhm(){
-  if(laser("front") > 200){
+  tch("fr");
+  tch("fl"); 
+  if((fr == 1 || fl == 1)){
+    tch("fr");
+    tch("fl"); 
+    Serial.print(fr);
+    Serial.println(fl);
     ball();
-    motor("forward",forward,forward);
+    motor("forward",0,0);
+    if (turn == false){
+      tch("fr");
+      tch("fl"); 
+
+       
+      ball();
+      motor("left",255,255);
+      delay(1000);
+      }
+      if (turn == true){
+        tch("fr");
+    tch("fl"); 
+    Serial.print(fr);
+    Serial.println(fl);
+        ball();
+        
+        motor("right",255,255);
+        delay(1000);
+      }
+      turn=!turn;
+      ball();
     }
     
-  Serial.println(sharp());
+  else{
+    tch("fr");
+    tch("fl");
+    ball();
+    motor("forward",forward,forward);
+    }  
+  /*
+  tch("fr");
+  tch("fl"); 
+  
+    
+
   ball();
   if(balll > 2){
     rang = false;
     while(rang == false){
     rangg("green");
-    if(tch("fr") == 1){
+    if((fr == 1 && fl == 1)){
+      tch("fr");
+      tch("fl");  
       digitalWrite(4,HIGH);
       servo("mlu");
       delay(1000);
     }  
     rangg("red");
-    if(tch("fr") && tch("fl") == 1){
+    if((fr == 1 && fl == 1)){
+      tch("fr");
+      tch("fl"); 
       digitalWrite(4,HIGH);
       servo("mru");
       delay(1000);
@@ -498,48 +542,49 @@ void shokhm(){
       }
     }
   }
-  if((ldr("right") < 500) || (ldr("left") < 450)){
+  if((ldr("right") < noghr1) || (ldr("left") < noghl1)){
     motor("left",255,255);
     delay(1000);
   }
   
-  else if (laser("front") < 200){
+  if((fr == 1 || fl == 1)){
+    tch("fr");
+    tch("fl"); 
+    Serial.print(fr);
+    Serial.println(fl);
     ball();
-    Serial.println(sharp());
     motor("forward",0,0);
       if (turn == false){
-        /*
-        turn_with_laser("left");
-        motor("forward",forward,forward); 
-        delay(300);
-        Serial.println("aafsasjlk");
-        turn_with_laser("left");
-        ball();
-        delay(1000);
-        */
+        tch("fr");
+    tch("fl"); 
+    Serial.print(fr);
+    Serial.println(fl);
+       
         ball();
         motor("left",255,255);
         delay(1000);
       }
       if (turn == true){
-        Serial.println(sharp());
+        tch("fr");
+    tch("fl"); 
+    Serial.print(fr);
+    Serial.println(fl);
         ball();
-        /*
-        turn_with_laser("right");
-        motor("forward",forward,forward);
-        delay(300);
-        Serial.println("aafsasjlk");
-        turn_with_laser("right");
-        ball();
-        delay(1000);
-        */
+        
         motor("right",255,255);
         delay(1000);
       }
-      turn=!turn ;
+      turn=!turn;
       ball();
     }
+    
+  else{
+    tch("fr");
+    tch("fl");
     ball();
+    motor("forward",forward,forward);
+    }  
+    */  
   } 
 void setcolor(String m){
   if(m == "green"){
@@ -566,38 +611,27 @@ void setcolor(String m){
 }  
 int rangg(String m){//.................................................
   if (m == "green"){
-    while(!(tch("fr") && tch("fl") == 1)){
-
-      if(!(pixyy() == "green")){
-        
-        if (rangg("line") == "right"){
-
-          motor("right",60,60);
-        }
-        else if (rangg("line") == "left"){
-
-          motor("left",60,60);
-        }
+    while(!(tch("fr") == 1 && tch("fl") == 1)){
+      pixyy();
+      
+      if(!(color == "green")){
+        pixyy();
+        motor("right",60,60);
+        Serial.println(pixyy());
       }
-      if(pixyy() == "green"){
-
+      if(color == "green"){
+        pixyy();
         motor("forward",222,222);  
         }      
       }
+      
     }
   if (m == "red"){
-    while(!(tch("fr") && tch("fl") == 1)){
+    while(!(tch("fr") == 1 && tch("fl") == 1)){
 
       if(!(pixyy() == "red")){
+        motor("right",60,60);
 
-        if (rangg("line") == "right"){
-
-          motor("right",60,60);
-        }
-        else if (rangg("line") == "left"){
-
-          motor("left",60,60);
-        }
       }
       if(pixyy() == "red"){
 
@@ -605,19 +639,8 @@ int rangg(String m){//.................................................
       }      
     }
   }   
-  if(m == "line"){
-    Serial.println(pixyyy());
-    if(pixyyy() < 170 ){
+}   
 
-      return "right";
-    }  
-    if(pixyyy() > 170 ){
-
-      return "left";
-
-    } 
-  }
-}    
  void dyna(String m){
   if(m == "up"){
 
@@ -639,7 +662,9 @@ int rangg(String m){//.................................................
 void Line(){
 
   //((aa7 == onn || aa8 == onn || aa9 == onn ) && (aa11 == onn || aa12 == onn || aa13 == onn ) && (aa2 == onn || aa24 == onn))
+  
   if((aa1 == onn && aa3 == onn && aa9 == onn && aa11 == onn && aa12 == onn)|| (aa1 == onn && aa17 == onn && aa9 == onn && aa11 == onn && aa8 == onn)||(aa6 == onn && aa15 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ||(aa5 == onn && aa15 == onn && aa2 == onn && aa24 == onn)||(aa6 == onn && aa15 == onn && aa24 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn) ||(aa5 == onn && aa15 == onn && aa2 == onn && aa24 == onn ) ){
+       
     rang = true;
     while(rang == true){
       ir();
@@ -654,8 +679,12 @@ void Line(){
     while(rang == false){
       delay(100);
       Serial.println(ldr("left"));
-
-      if (greenr1 < ldr("right") && ldr("right") < greenr2){
+      if((greenr1 < ldr("right") && ldr("right") < greenr2) && (greenl1 < ldr("left") && ldr("left") < greenl2)){
+        motor("right",250,250);
+        delay(2500);
+        rang = true;
+      }
+      else if (greenr1 < ldr("right") && ldr("right") < greenr2){
         motor("right",200,250);
         delay(1000);
         rang = true;
@@ -678,7 +707,21 @@ void Line(){
 
    ir();
    digitalWrite(4,LOW);
+  if(((ldr("right") < redr2) && (ldr("right") > redr1)) || ((ldr("left") < redl2) && (ldr("left") > redl1))){
 
+    if(aa1 == offf || aa18 == offf || aa23 == offf){
+      digitalWrite(imr1, LOW);
+      digitalWrite(imr2, LOW);
+      analogWrite(emr, 200);
+      digitalWrite(iml1, LOW);
+      digitalWrite(iml2, LOW);
+      analogWrite(eml, 200);
+      delay(10000);
+    }
+  }
+
+  
+  
   if(((ldr("right") < 530) && (ldr("right") > 430)) || ((ldr("left") < 480) && (ldr("left") > 380))){
     delay(100);
     if(aa1 == offf || aa18 == offf || aa23 == offf){
@@ -689,97 +732,59 @@ void Line(){
     }
     
   }
-  while (aa1 == onn){
+
+  if (aa1 == onn ){
       ir();
       rang = true;
       motor("forward",forward,forward);
       Serial.println("forward");
       /*
       if(aa9 == onn){
-        motor("left",high,low);
+        motor("left",255,255);
       }
       if(aa11 == onn){
-        motor("right",low,high);
+        motor("right",255,255);
       }
       */
 
     }
-
-  if (aa12 == onn || aa16 == onn || aa21 == onn){
+    
+  else if(aa12 == offf && aa16 == offf && aa21 == offf && aa8 == offf && aa4 == offf && aa20 == offf){
+    motor("forward",forward,forward);
+  }
+  else if (aa12 == onn || aa16 == onn || aa21 == onn){
+    while(!(aa1 == onn)){
+      ir();
     motor("right",low,high);
     Serial.println("bish right");
-    
+    khat();
+    }
   }
   else if (aa8 == onn || aa4 == onn || aa20 == onn){
+    while(!(aa1 == onn)){
+      ir();
     motor("left",high,low);
     Serial.println("bish left");
-    
+    khat();
+    }
   }
-  else{
-    motor("forward",forward,forward);
-    Serial.println("forward");
-  }
+}
 
-
-  }
+  
 void khat(){
     ir();
-    /*
-  if (aa14 == onn && aa2 == offf && aa24 == offf){
-    ir();
+  if (aa21 == onn){
     while(!(aa1 == onn)){
       ir();
-      motor("right",255,255);
-      Serial.println("enheraf right");
+    motor("right",low,high);
+    Serial.println("bish right");
     }
   }
-  
-  else if (aa6 == onn && aa2 == offf && aa24 == offf){
-    ir();
+  else if (aa20 == onn){
     while(!(aa1 == onn)){
       ir();
-      motor("left",255,255);
-      Serial.println("enheraf left");
-      }
-    }
-    */
-  if(aa21 == onn && aa10 == offf){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("right",low,high);
-      Serial.println("return tond right");
-      
-    }
-    delay(300);
-  }
-  else if(aa20 == onn && aa10 == offf){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("left",low,high);
-      Serial.println("return tond left");
-     
-      
-    }
-    delay(300);
-  }
-  else if (aa18 == onn && aa1 == onn){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("left",high,low);
-      Serial.println("l bala left");
-      
-    }
-  }
-  else if (aa23 == onn && aa1 == onn){
-    ir();
-    while(!(aa1 == onn)){
-      ir();
-      motor("right",low,high);
-      Serial.println("l bala right");
-      
+    motor("left",high,low);
+    Serial.println("bish left");
     }
   }
 }
@@ -811,17 +816,20 @@ int ldr(String m){
   }
 }  
 int tch(String m){
-  if(m == "br"){
-    return analogRead(tchbrp);
+  if(m == "br"){  
+      
+    return digitalRead(tchbrp);
   }
   if(m == "bl"){
-    return analogRead(tchblp);
+    return digitalRead(tchblp);
   }
   if(m == "fr"){
-    return analogRead(tchfrp);
+    fr = digitalRead(tchfrp);
+    return digitalRead(tchfrp);
   }
   if(m == "fl"){
-    return analogRead(tchflp);
+    fl = digitalRead(tchflp);
+    return digitalRead(tchflp);
   }
 }
 void turn_with_laser(String mode){
@@ -1321,18 +1329,21 @@ if (blocks)
 
       for (j=0; j<blocks; j++)
       {
-        Serial.println(pixy.blocks[j].signature);
+
 
         if (pixy.blocks[j].signature == 1){
           Serial.println("red");
+          color = "red";
           return "red";
         }
         if (pixy.blocks[j].signature == 2){
           Serial.println("green");
+          color = "green";
           return "green";
         }
         if (pixy.blocks[j].signature == 3){
           Serial.println("blue");
+          color = "blue";
           return "blue";
         }
       }
