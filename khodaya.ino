@@ -169,7 +169,7 @@ PixyI2C pixy;
     #define tchblp 64
 
     #define ballon 11
-    #define ballread 10
+    #define ballread 55
 
   //sharp
     #define sharppin A4
@@ -182,10 +182,10 @@ PixyI2C pixy;
     #define redl1 100
     #define redl2 200
 
-    #define greenr1 550
-    #define greenr2 610
-    #define greenl1 480
-    #define greenl2 540
+    #define greenr1 630
+    #define greenr2 730
+    #define greenl1 650
+    #define greenl2 720//579
 
     #define noghr1 500
     #define noghr2 600
@@ -274,24 +274,28 @@ PixyI2C pixy;
 
 
 void setup(){
-  /*
+  digitalWrite(tranr,HIGH);
+  digitalWrite(tranl,HIGH);
+  
+  
   servo("mrd");
   servo("mld");
   servo("baz");
-  */
-  pinMode(sharppin,INPUT);
-  //servo //13 12 11 10
-  /*
-    servogr.attach(11);//baz 0 baste
-    servogl.attach(10);//baz180
 
-    servomr.attach(12);//bala 5 paiin 90
-    servoml.attach(13);//bala 80 paiin 0
+  pinMode(ballread,INPUT);
+  pinMode(sharppin,INPUT);
+  
+    servogr.attach(11);//baz 0 baste 0
+    servogl.attach(13);//baz 90 baste 30
+
+    servomr.attach(10);//bala 25 paiin 90
+    servoml.attach(12);//bala 65 paiin 0
     
-*/
+
   //cmps11
-   Wire.begin();
-  //color setup  
+  Wire.begin();
+  //color setup 
+  /*
     digitalWrite(tranr,HIGH);  
     digitalWrite(tranl,HIGH); 
     tch("br"); 
@@ -310,10 +314,10 @@ void setup(){
           }
         }  
       }
-
+*/
 //laser
 
-
+/*
 pinMode(xshutPin, OUTPUT);
   digitalWrite(xshutPin, LOW);
 
@@ -380,7 +384,7 @@ digitalWrite(xshutPin3, HIGH);
   // increase timing budget to 200 ms
   sensor2.setMeasurementTimingBudget(20000);
 #endif
-
+*/
 //laser...............
   pinMode(a1,INPUT);
   pinMode(a2,INPUT);
@@ -424,13 +428,13 @@ digitalWrite(xshutPin3, HIGH);
   //pixy
   pixy.init();
 
-dyna("up");
+dyna("down");
 }
 
 
 void loop() {
 
-Line();
+rangg("green");
 
 }
 //================================================================================-----------------===================================================================================
@@ -633,21 +637,23 @@ int rangg(String m){//.................................................
   }
 }
 void Line(){
-    /*
-  if(((aa7 == onn || aa8 == onn || aa9 == onn ) && (aa11 == onn || aa12 == onn || aa13 == onn ) && (aa2 == onn || aa24 == onn))||(aa1 == onn && aa3 == onn && aa9 == onn && aa11 == onn && aa12 == onn)|| (aa1 == onn && aa17 == onn && aa9 == onn && aa11 == onn && aa8 == onn)||(aa6 == onn && aa15 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ||(aa5 == onn && aa15 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ){
-    
+
+  //((aa7 == onn || aa8 == onn || aa9 == onn ) && (aa11 == onn || aa12 == onn || aa13 == onn ) && (aa2 == onn || aa24 == onn))
+  if((aa1 == onn && aa3 == onn && aa9 == onn && aa11 == onn && aa12 == onn)|| (aa1 == onn && aa17 == onn && aa9 == onn && aa11 == onn && aa8 == onn)||(aa6 == onn && aa15 == onn && aa24 == onn && aa1 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn && aa1 == onn) ||(aa5 == onn && aa15 == onn && aa2 == onn && aa24 == onn)||(aa6 == onn && aa15 == onn && aa24 == onn)||(aa5 == onn && aa14 == onn && aa2 == onn && aa24 == onn) ||(aa5 == onn && aa15 == onn && aa2 == onn && aa24 == onn ) ){
+    rang = true;
     while(rang == true){
       ir();
       motor("back",forward,forward);
-      delay(70);
+      delay(50);
       motor("forward",0,0); 
       delay(500);
+      Serial.println(ldr("right"));
       rang = false;
     }
     
     while(rang == false){
       delay(100);
-      Serial.println(ldr("right"));
+      Serial.println(ldr("left"));
 
       if (greenr1 < ldr("right") && ldr("right") < greenr2){
         motor("right",200,250);
@@ -669,13 +675,13 @@ void Line(){
     }
     rang = false;
   } 
-  */
+
    ir();
    digitalWrite(4,LOW);
 
   if(((ldr("right") < 530) && (ldr("right") > 430)) || ((ldr("left") < 480) && (ldr("left") > 380))){
     delay(100);
-    if(aa1 == onn || aa18 == onn || aa23 == onn){
+    if(aa1 == offf || aa18 == offf || aa23 == offf){
       faze = false;
     }
     else{
@@ -683,7 +689,8 @@ void Line(){
     }
     
   }
-  if (aa1 == onn){
+  while (aa1 == onn){
+      ir();
       rang = true;
       motor("forward",forward,forward);
       Serial.println("forward");
@@ -698,7 +705,7 @@ void Line(){
 
     }
 
-  else if (aa12 == onn || aa16 == onn || aa21 == onn){
+  if (aa12 == onn || aa16 == onn || aa21 == onn){
     motor("right",low,high);
     Serial.println("bish right");
     
@@ -708,7 +715,10 @@ void Line(){
     Serial.println("bish left");
     
   }
-  
+  else{
+    motor("forward",forward,forward);
+    Serial.println("forward");
+  }
 
 
   }
@@ -1011,7 +1021,7 @@ aa23=digitalRead(a23);
 aa24=digitalRead(a24);
 }    
 int ballkind(){
-  digitalWrite(ballon,HIGH);
+
   return digitalRead(ballread);
 }
 int ballll(){
@@ -1206,41 +1216,43 @@ void servo(String m){
   //greeper 
     if(m == "baste"){
       servogr.write(30);
-      servogl.write(150);
+      servogl.write(60);
       delay(800);
     }
     if(m == "baz"){
       servogr.write(0);
-      servogl.write(180);
+      servogl.write(95);
       delay(800);
     }
     if(m == "gr"){
       servogr.write(0);
-      servogl.write(138);
+      servogl.write(48);
       delay(800);
-      servogl.write(180);
+      servogl.write(95);
     }
     if(m == "gl"){
-      servogr.write(42);
-      servogl.write(180);
+      servogr.write(48);
+      servogl.write(95);
       delay(800);
       servogr.write(0);
     }
   //makhzan
+  //bala 25 paiin 90
+  //bala 65 paiin 0
     if(m == "mrd"){
       servomr.write(90);
       delay(1000);
     }
     if(m == "mru"){
-      servomr.write(10);
+      servomr.write(25);
       delay(1000);
     }
     if(m == "mld"){
-      servoml.write(90);
+      servoml.write(0);
       delay(1000);
     }
     if(m == "mlu"){
-      servoml.write(10);
+      servoml.write(65);
       delay(1000);
     }
 
